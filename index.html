@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Downloader</title>
+    <title>YouTube Converter</title>
 </head>
 <body>
-    <h1>YouTube Downloader</h1>
+    <h1>YouTube Converter</h1>
     <form id="downloadForm">
         <label for="videoLink">Enter YouTube Video Link:</label><br>
         <input type="text" id="videoLink" name="videoLink" required><br><br>
@@ -14,6 +14,7 @@
         <select id="format" name="format" required>
             <option value="mp3">MP3</option>
             <option value="mp4">MP4</option>
+            <option value="webm">WEBM</option>
         </select><br><br>
         <button type="submit">Download</button>
     </form>
@@ -24,22 +25,11 @@
             const videoLink = document.getElementById('videoLink').value;
             const format = document.getElementById('format').value;
 
-            // Constructing download link based on format
-            let downloadLink = '';
-            if (format === 'mp3') {
-                downloadLink = `https://www.ytmp3.cc/download/${videoLink}`;
-            } else if (format === 'mp4') {
-                downloadLink = `https://www.ytmp3.cc/download/${videoLink}`;
-            }
+            // Constructing API URL
+            const apiUrl = `https://convert2mp3s.com/api/single/${format}?url=${encodeURIComponent(videoLink)}`;
 
-            // Initiating download (simulated with alert)
-            if (downloadLink) {
-                setTimeout(() => {
-                    alert(`Simulating ${format.toUpperCase()} download for ${videoLink}...`);
-                }, 1000);
-            } else {
-                alert('Invalid format selected!');
-            }
+            // Opening a new window/tab with the API URL
+            window.open(apiUrl, '_blank');
         });
     </script>
 </body>
