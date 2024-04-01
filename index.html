@@ -27,19 +27,16 @@
             // Constructing download link based on format
             let downloadLink = '';
             if (format === 'mp3') {
-                downloadLink = `https://www.convertmp3.io/fetch/?video=${videoLink}`;
+                downloadLink = `https://www.ytmp3.cc/download/${videoLink}`;
             } else if (format === 'mp4') {
-                downloadLink = `https://www.convertmp3.io/download/?video=${videoLink}`;
+                downloadLink = `https://www.ytmp3.cc/download/${videoLink}`;
             }
 
-            // Initiating download
+            // Initiating download (simulated with alert)
             if (downloadLink) {
-                const a = document.createElement('a');
-                a.href = downloadLink;
-                a.download = `video.${format}`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                setTimeout(() => {
+                    alert(`Simulating ${format.toUpperCase()} download for ${videoLink}...`);
+                }, 1000);
             } else {
                 alert('Invalid format selected!');
             }
