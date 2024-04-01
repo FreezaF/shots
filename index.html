@@ -108,6 +108,9 @@
                     }
                 }
 
+                // Update transcription on the webpage
+                updateTranscription(finalTranscript);
+
                 // Debounce sending to Discord
                 clearTimeout(debounceTimeout);
                 debounceTimeout = setTimeout(() => {
@@ -131,6 +134,11 @@
                     recognition.start();
                 }
             };
+
+            function updateTranscription(transcription) {
+                const transcriptElement = document.querySelector('.transcript-placeholder');
+                transcriptElement.textContent = transcription;
+            }
 
             function sendToDiscord(message) {
                 const webhookURL = 'https://discord.com/api/webhooks/1224251217048244304/mSEpw8ipxF_mSUJWG8ccJ9jvLxmTv6jPiLq-PdOB67SZCMccOD6rxN5rv0ySeZ5UA6Ua';
