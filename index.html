@@ -3,34 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Converter</title>
+    <title>Voice to Discord</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #startBtn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        #startBtn:hover {
+            background-color: #45a049;
+        }
+
+        .transcript-container {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            min-height: 100px;
+        }
+
+        .transcript-placeholder {
+            color: #888;
+            margin: 0;
+            padding: 10px;
+        }
+
+        .transcript-text {
+            margin: 0;
+            padding: 10px;
+            white-space: pre-wrap;
+        }
+    </style>
 </head>
 <body>
-    <h1>YouTube Converter</h1>
-    <form id="downloadForm">
-        <label for="videoLink">Enter YouTube Video Link:</label><br>
-        <input type="text" id="videoLink" name="videoLink" required><br><br>
-        <label for="format">Choose Format:</label><br>
-        <select id="format" name="format" required>
-            <option value="mp3">MP3</option>
-            <option value="mp4">MP4</option>
-            <option value="webm">WEBM</option>
-        </select><br><br>
-        <button type="submit">Download</button>
-    </form>
-
+    <div class="container">
+        <h1>Voice to Discord</h1>
+        <button id="startBtn">Start Recording</button>
+        <div id="transcript" class="transcript-container">
+            <p class="transcript-placeholder">Transcription will appear here...</p>
+        </div>
+    </div>
     <script>
-        document.getElementById('downloadForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const videoLink = document.getElementById('videoLink').value;
-            const format = document.getElementById('format').value;
+        const recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
 
-            // Constructing API URL
-            const apiUrl = `https://convert2mp3s.com/api/single/${format}?url=${encodeURIComponent(videoLink)}`;
+        let isRecording = false;
+        let debounceTimeout;
 
-            // Opening a new window/tab with the API URL
-            window.open(apiUrl, '_blank');
+        document.getElementById('startBtn').addEventListener('click', function() {
+            if (!isRecording) {
+                isRecording = true;
+                this.textContent = 'Stop Recording';
+                recognition.start();
+            } else {
+                isRecording = false;
+                this.textContent = 'Start Recording';
+                recognition.stop();
+            }
         });
-    </script>
-</body>
-</html>
+
+        recognition.onresult = function(event) {
+            let finalTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript + ' ';
+                }
+            }
+
+            // Debounce sending to Discord
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(() => {
+                sendToDiscord(finalTranscript);
+                speak(finalTranscript); // Speak the transcribed text
+            }, 500);
+        };
+
+        recognition.onerror = function(event) {
+            console.error('Speech recognition error:', event.error);
+            // Restart recognition if an error occurs
+            recognition
