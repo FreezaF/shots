@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Decoder/Editor/Encoder</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f0f0f0;
+    }
+    .container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        max-width: 1200px;
+        margin: 50px auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #fff;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+    textarea {
+        width: 300px;
+        height: 120px;
+        margin-bottom: 10px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        resize: none;
+    }
+    h2 {
+        margin-top: 0;
+        font-size: 20px;
+        color: #333;
+        text-align: center;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <div>
+        <h2>Base64 Decoder</h2>
+        <textarea id="input" placeholder="Enter Base64 string here..." spellcheck="false"></textarea>
+    </div>
+    
+    <div>
+        <h2>Editor</h2>
+        <textarea id="output" spellcheck="false"></textarea>
+    </div>
+
+    <div>
+        <h2>Base64 Encoder</h2>
+        <textarea id="finalOutput" readonly spellcheck="false"></textarea>
+    </div>
+</div>
+
+<div class="container">
+    <div>
+        <h2>Upload Text File</h2>
+        <input type="file" id="fileInput" accept=".txt">
+    </div><br><br>
+
+    <div>
+        <h2>Export Text File</h2>
+        <input type="text" id="fileName" placeholder="Enter file name">
+        <button id="exportButton">Export</button>
+    </div>
+</div>
+
+<script>
+    function decodeBase64() {
+        var input = document.getElementById('input').value;
+        var decoded = atob(input);
+        document.getElementById('output').value = decoded;
+        updateEncodedValue();
+    }
+
+    function updateEncodedValue() {
+        var input = document.getElementById('output').value;
+        document.getElementById('finalOutput').value = btoa(input);
+    }
+
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('input').value = e.target.result;
+                decodeBase64();
+            }
+            reader.readAsText(file);
+        }
+    }
+
+    function exportTextFile() {
+        var fileName = document.getElementById('fileName').value.trim();
+        if (!fileName) {
+            alert('Please enter a file name.');
+            return;
+        }
+        var textContent = document.getElementById('finalOutput').value;
+        var blob = new Blob([textContent], { type: 'text/plain' });
+        var url = window.URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = fileName + '.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('input').addEventListener('input', decodeBase64);
+    document.getElementById('output').addEventListener('input', updateEncodedValue);
+    document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+    document.getElementById('exportButton').addEventListener('click', exportTextFile);
+</script>
+</body>
+</html>
